@@ -18,7 +18,8 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()
+        "last_modified": dt.datetime.now(),
+        'hemi_info': hemisphere(browser)
     }
 
     # Stop webdriver and return data
@@ -94,6 +95,42 @@ def mars_facts():
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html()
+
+def hemisphere(browser):
+    url = 'https://marshemispheres.com/'
+
+    browser.visit(url)
+
+    # Create a list to hold the images and titles.
+    hemisphere_image_urls = []
+    hemisphere_titles = []
+
+    # code to retrieve the image urls
+    mars_html = browser.html
+    mars_soup = soup(mars_html, 'html.parser') 
+    mars_pic = mars_soup.find_all('div', class_='item')
+    for pic in mars_pic:
+        mars_img_url_rel = pic.find('img', class_='thumb').get('src')
+        mars_img_url = f'{url}{mars_img_url_rel}'
+        hemisphere_image_urls.append(mars_img_url)
+
+    # code to retrieve the titles
+    mars_desc = mars_soup.find_all('div', class_='description')
+    for desc in mars_desc:
+        mars_title = desc.a.get_text(strip=True)
+        hemisphere_titles.append(mars_title)
+
+    # create a dictionary to hold the scraped info
+    hemi_info = {}
+    keys = hemisphere_titles
+    values = hemisphere_image_urls
+
+    # iterate through the keys to line up all the values
+    for i in keys:
+        for x in values:
+            hemi_info[i] = x
+
+    return hemi_info
 
 if __name__ == "__main__":
     # If running as script, print scraped data
